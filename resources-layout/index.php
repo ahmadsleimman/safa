@@ -230,7 +230,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	                "offset": "' . (isset($offset) ? $offset : '') . '"
 	            }',
 	            CURLOPT_HTTPHEADER => array(
-	                'Authorization: Bearer pat42XUmn6RD11bGU.62b12001f0eacaa006e1870c9bae6aeb881da7072634217e954e8ecc4989aa20',
+	                'Authorization: ',
 	                'Content-Type: application/json'
 	            ),
 	            CURLOPT_SSL_VERIFYPEER => false
@@ -410,7 +410,7 @@ function renderGalleryItems(items) {
 
 
 
-
+    let itemIdCounter = 1;
     // Iterate over the subset of items to display
     items.slice(startIndex, endIndex).forEach(item => {
         var content = convertMarkdownToHTML(item.notes);
@@ -421,7 +421,8 @@ function renderGalleryItems(items) {
             .data({
                 "language": item.language,
                 "level": item.level,
-                "date": new Date(item.date).getTime()
+                "date": new Date(item.date).getTime(),
+                "item-id": itemIdCounter
             })
             // Set the HTML content for the item
             .html(`
@@ -434,53 +435,53 @@ function renderGalleryItems(items) {
                     ${item.link}<br>${item.language} • ${item.level}
                 </div>
                 <div class='like-dislike-buttons'>
-                    <button class='like-button' data-item-id='${item.id}'><i  class="fa fa-thumbs-up"></i></button>
-                    <button class='dislike-button' data-item-id='${item.id}'><i  class="fa fa-thumbs-down"></i></button>
+                    <button class='like-button' data-item-id='${itemIdCounter}'><i  class="fa fa-thumbs-up"></i></button>
+                    <button class='dislike-button' data-item-id='${itemIdCounter}'><i  class="fa fa-thumbs-down"></i></button>
                 </div>
-                <div id="commentModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <textarea id="commentTextarea" placeholder="Write your comment here..."></textarea>
-                        <input class="btn btn-primary" type="submit" value="Submit">
-                    </div>
+                <div id="commentModal-${itemIdCounter}" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <textarea id="commentTextarea-${itemIdCounter}" placeholder="Write your comment here..."></textarea>
+                    <input class="btn btn-primary submit-comment" type="submit" value="Submit">
                 </div>
+            </div>
             `);
-
-        // Append the created item to the container
+            itemIdCounter++;
         $galleryItems.append($item);
     });
-    $(".like-button").click(function() {
+$(".like-button").click(function() {
     const itemId = $(this).data("item-id");
-    showCommentModal(itemId, "like");
+    showCommentModal(itemId);
 });
 
 $(".dislike-button").click(function() {
     const itemId = $(this).data("item-id");
-    showCommentModal(itemId, "dislike");
+    showCommentModal(itemId);
+});
+$(document).on("click", function(event) {
+    
+    if (!$(event.target).closest(`#commentModal-${itemId}`).length) {
+        $(`#commentModal-${itemId}`).css("display", "none");
+    }
 });
 
-// Function to show the comment modal
-function showCommentModal(itemId, actionType) {
-    $("#commentModal").css("display", "block");
-
-    // Close the modal when the close button is clicked
-    $(".close").click(function() {
-        $("#commentModal").css("display", "none");
+function showCommentModal(itemId) {
+    $(`#commentModal-${itemId}`).css("display", "block");
+    
+    $(`#commentModal-${itemId} .close`).click(function() {
+        $(`#commentModal-${itemId}`).css("display", "none");
     });
 
-    // Handle comment submission
-    $("#submitCommentBtn").click(function() {
-        const comment = $("#commentTextarea").val();
-        // Here you can perform any action with the comment data, such as saving it to Airtable
+    
+    $(`#commentModal-${itemId} .submit-comment`).click(function() {
+        const comment = $(`#commentTextarea-${itemId}`).val();
         console.log(`Comment for item ${itemId}: ${comment}`);
-        // Close the modal
-        $("#commentModal").css("display", "none");
-        // Clear the textarea
-        $("#commentTextarea").val("");
+        $(`#commentModal-${itemId}`).css("display", "none");
+        $(`#commentTextarea-${itemId}`).val("");
     });
 }
-}
 
+}
 
     // Initialize pagination
     function initPagination(totalItems) {
@@ -631,4 +632,3 @@ function toggleCheckboxList(buttonNumber) {
     }
   }
 </script>
-
